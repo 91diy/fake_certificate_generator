@@ -2,6 +2,7 @@
 '''
 code for generate vehicle license
 '''
+# PIL need pip install pillow
 from PIL import Image,ImageFont,ImageDraw
 from utils.bussiness_license_entity import BusinessLicense
 

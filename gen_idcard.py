@@ -4,6 +4,7 @@ code for id
 '''
 from PIL import ImageFont,Image,ImageDraw
 from utils.idcard_entity import *
+# pip install opencv-python
 import cv2
 import numpy as np
 
@@ -79,32 +80,31 @@ def generator(idcard_info, name_font,other_font,bdate_font,
     avatar = cv2.cvtColor(np.asarray(avatar), cv2.COLOR_RGBA2BGRA)
     im = cv2.cvtColor(np.asarray(im), cv2.COLOR_RGBA2BGRA)
     im = paste_photo(avatar, im, (500, 670), (690, 1500))
-    #正反面图像分别保存
-    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    ret, binary = cv2.threshold(gray, 10, 128, cv2.THRESH_OTSU)
-    #从OpenCV 3.2开始，findContours不再修改源图像，而是将修改后的图像作为三个返回参数中的第一个返回
-    #可以用help(cv2.findContours)来查看具体的返回值
-    _, contours, _= cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    #按轮廓的面积排序
-    contours.sort(key=cv2.contourArea, reverse=True)
-    # cv2.drawContours(im, [contours[0]], -1, (0, 255, 0), 3)
-    # cv2.imwrite("xx.jpg", im)
-    #得到正反面的位置
-    back = contours[0] #反面
-    front = contours[1] #正面
-
-    b_x, b_y, b_w, b_h = cv2.boundingRect(back)
-    f_x, f_y, f_w, f_h = cv2.boundingRect(front)
-
-    im_front = im[f_y:f_y+f_h,f_x:f_x+f_w]
-    im_back = im[b_y:b_y+b_h,b_x:b_x+b_w]
-    h = im_front.shape[0]
-    w = im_front.shape[1]
-    im_front = cv2.resize(im_front,(w,h))
-    im_back = cv2.resize(im_back, (w,h))
     cv2.imwrite(save_dir+"idcard_full.jpg", im)
-    cv2.imwrite(save_dir+"idcard_front.jpg",im_front)
-    cv2.imwrite(save_dir+"idcard_back.jpg",im_back)
+    # 分割
+    split_image_vertically(save_dir+"idcard_full.jpg",save_dir)
+
+
+def split_image_vertically(image_path:str, save_dir:str):
+    # 打开图片
+    image = Image.open(image_path)
+
+    # 获取图片的宽度和高度
+    width, height = image.size
+
+    # 计算中间位置
+    middle_height = height // 2
+
+    # 裁剪上半部分
+    top_image = image.crop((0, 0, width, middle_height))
+
+    # 裁剪下半部分
+    bottom_image = image.crop((0, middle_height, width, height))
+
+    # 保存裁剪后的图片
+    top_image.save(save_dir+'idcard_back.jpg')
+    bottom_image.save(save_dir+'idcard_front.jpg')
+
 
 
 if __name__=="__main__":
